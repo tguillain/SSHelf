@@ -65,7 +65,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: SSHelf ${{ github.ref_name }}
-          releaseBody: Installeurs de SSHelf ${{ github.ref_name }} pour Windows, macOS et Linux.
+          releaseBody: SSHelf ${{ github.ref_name }} installers for Windows, macOS and Linux.
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
