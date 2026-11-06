@@ -47,7 +47,7 @@ pub fn load_connections(app: AppHandle) -> Result<Vec<Connection>, String> {
         return Ok(Vec::new());
     }
     let raw = fs::read_to_string(&path).map_err(|error| error.to_string())?;
-    serde_json::from_str(&raw).map_err(|error| format!("{STORE_FILE} illisible : {error}"))
+    serde_json::from_str(&raw).map_err(|error| format!("{STORE_FILE} is unreadable: {error}"))
 }
 
 #[tauri::command]

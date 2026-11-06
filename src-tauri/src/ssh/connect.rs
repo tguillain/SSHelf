@@ -9,6 +9,7 @@ use super::auth::{self, Secret};
 use super::errors::{ConnectError, ErrorCode};
 use super::events::SessionEvent;
 use super::handler::{ClientHandler, EventSink, PendingHostKeys};
+use super::message::Message;
 use crate::connections::Connection;
 
 const TCP_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
@@ -57,11 +58,18 @@ async fn open_tcp(connection: &Connection) -> Result<TcpStream, ConnectError> {
     match tokio::time::timeout(TCP_CONNECT_TIMEOUT, TcpStream::connect(address)).await {
         Err(_) => Err(ConnectError::new(
             ErrorCode::Timeout,
-            format!("{}:{} ne répond pas (délai dépassé)", connection.host, connection.port),
+            Message::TcpTimeout {
+                host: connection.host.clone(),
+                port: connection.port,
+            },
         )),
         Ok(Err(error)) => Err(ConnectError::new(
             ErrorCode::Network,
-            format!("Impossible de joindre {}:{} : {error}", connection.host, connection.port),
+            Message::TcpUnreachable {
+                host: connection.host.clone(),
+                port: connection.port,
+                detail: error.to_string(),
+            },
         )),
         Ok(Ok(stream)) => {
             let _ = stream.set_nodelay(true);
@@ -77,9 +85,12 @@ pub async fn establish(
     size: TerminalSize,
 ) -> Result<Established, ConnectError> {
     let events = context.events.clone();
-    let progress = |message: String| events(SessionEvent::Progress { message });
+    let progress = |message: Message| events(SessionEvent::Progress { message });
 
-    progress(format!("Connexion à {}:{}…", connection.host, connection.port));
+    progress(Message::Connecting {
+        host: connection.host.clone(),
+        port: connection.port,
+    });
     let stream = open_tcp(connection).await?;
 
     let handler = ClientHandler {
@@ -95,9 +106,11 @@ pub async fn establish(
         client::connect_stream(client_config(), stream, handler),
     )
     .await
-    .map_err(|_| ConnectError::new(ErrorCode::Timeout, "Négociation SSH trop longue"))??;
+    .map_err(|_| ConnectError::new(ErrorCode::Timeout, Message::HandshakeTimeout))??;
 
-    progress(format!("Authentification de {}…", connection.user));
+    progress(Message::Authenticating {
+        user: connection.user.clone(),
+    });
     auth::authenticate(&mut handle, connection, secret).await?;
 
     let channel = handle.channel_open_session().await?;

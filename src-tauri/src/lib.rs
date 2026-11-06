@@ -19,5 +19,5 @@ pub fn run() {
             ssh::session::ssh_answer_host_key
         ])
         .run(tauri::generate_context!())
-        .expect("impossible de démarrer SSHelf");
+        .expect("failed to start SSHelf");
 }

@@ -3,6 +3,7 @@ mod connect;
 mod errors;
 mod events;
 mod handler;
+mod message;
 pub mod session;
 
 #[cfg(test)]

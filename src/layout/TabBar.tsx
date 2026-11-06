@@ -1,5 +1,6 @@
-import { ENVIRONMENTS } from '../connections/environments';
+import { ENVIRONMENT_COLORS } from '../connections/environments';
 import type { Connection } from '../connections/types';
+import { useI18n } from '../i18n/useI18n';
 import type { Session } from '../sessions/useSessions';
 import { Icon } from '../ui/Icon';
 
@@ -23,9 +24,12 @@ export const TabBar = ({
   onClose,
   onNew,
   onToggleSplit,
-}: TabBarProps) => (
+}: TabBarProps) => {
+  const { messages } = useI18n();
+
+  return (
   <div className="tabbar">
-    <div className="tabbar__tabs" role="tablist" aria-label="Sessions ouvertes">
+    <div className="tabbar__tabs" role="tablist" aria-label={messages.tabs.label}>
       {sessions.map((session) => {
         const connection = connectionsById.get(session.connectionId);
         if (!connection) {
@@ -42,14 +46,14 @@ export const TabBar = ({
               onClick={() => onSelect(session.connectionId)}
               onAuxClick={(event) => event.button === 1 && onClose(session.connectionId)}
             >
-              <span className="tab__dot" style={{ background: ENVIRONMENTS[connection.environment].color }} />
+              <span className="tab__dot" style={{ background: ENVIRONMENT_COLORS[connection.environment] }} />
               <span className="tab__name">{connection.name}</span>
               {session.status === 'connecting' && <Icon name="spinner" size={12} strokeWidth={3} className="spin tab__spinner" />}
             </button>
             <button
               type="button"
               className="tab__close"
-              aria-label={`Fermer ${connection.name}`}
+              aria-label={messages.tabs.close(connection.name)}
               onClick={() => onClose(session.connectionId)}
             >
               <Icon name="close" size={12} strokeWidth={2.6} />
@@ -58,7 +62,7 @@ export const TabBar = ({
         );
       })}
     </div>
-    <button type="button" className="button button--ghost button--icon tabbar__new" aria-label="Nouvelle connexion" onClick={onNew}>
+    <button type="button" className="button button--ghost button--icon tabbar__new" aria-label={messages.tabs.newConnection} onClick={onNew}>
       <Icon name="plus" size={15} strokeWidth={2.4} />
     </button>
     <div className="tabbar__spacer" />
@@ -70,7 +74,8 @@ export const TabBar = ({
       onClick={onToggleSplit}
     >
       <Icon name="split" size={15} />
-      Diviser
+      {messages.tabs.split}
     </button>
   </div>
-);
+  );
+};

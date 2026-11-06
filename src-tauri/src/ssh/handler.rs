@@ -9,6 +9,7 @@ use tokio::sync::oneshot;
 
 use super::errors::HandlerError;
 use super::events::SessionEvent;
+use super::message::Message;
 
 const HOST_KEY_PROMPT_TIMEOUT: Duration = Duration::from_secs(300);
 
@@ -47,17 +48,18 @@ impl ClientHandler {
         accepted
     }
 
-    fn progress(&self, message: impl Into<String>) {
-        (self.events)(SessionEvent::Progress {
-            message: message.into(),
-        });
+    fn progress(&self, message: Message) {
+        (self.events)(SessionEvent::Progress { message });
     }
 }
 
 impl client::Handler for ClientHandler {
     type Error = HandlerError;
 
-    async fn check_server_key(&mut self, server_public_key: &PublicKeyOrCertificate) -> Result<bool, Self::Error> {
+    async fn check_server_key(
+        &mut self,
+        server_public_key: &PublicKeyOrCertificate,
+    ) -> Result<bool, Self::Error> {
         let PublicKeyOrCertificate::PublicKey { key, .. } = server_public_key else {
             return Err(HandlerError::HostCertificateUnsupported);
         };
@@ -65,14 +67,26 @@ impl client::Handler for ClientHandler {
 
         match known_hosts::check_known_hosts_path(&self.host, self.port, key, &self.known_hosts) {
             Ok(true) => Ok(true),
-            Err(russh::keys::Error::KeyChanged { line }) => Err(HandlerError::HostKeyChanged { line, fingerprint }),
+            Err(russh::keys::Error::KeyChanged { line }) => {
+                Err(HandlerError::HostKeyChanged { line, fingerprint })
+            }
             Ok(false) | Err(_) => {
-                if !self.ask_user(key.algorithm().as_str().to_string(), fingerprint).await {
+                if !self
+                    .ask_user(key.algorithm().as_str().to_string(), fingerprint)
+                    .await
+                {
                     return Err(HandlerError::HostKeyRejected);
                 }
-                match known_hosts::learn_known_hosts_path(&self.host, self.port, key, &self.known_hosts) {
-                    Ok(()) => self.progress("Empreinte ajoutée à ~/.ssh/known_hosts"),
-                    Err(error) => self.progress(format!("Empreinte acceptée mais non enregistrée : {error}")),
+                match known_hosts::learn_known_hosts_path(
+                    &self.host,
+                    self.port,
+                    key,
+                    &self.known_hosts,
+                ) {
+                    Ok(()) => self.progress(Message::HostKeyLearned),
+                    Err(error) => self.progress(Message::HostKeyNotSaved {
+                        detail: error.to_string(),
+                    }),
                 }
                 Ok(true)
             }

@@ -1,33 +1,24 @@
+import type { Messages } from '../i18n/types';
 import type { AuthMethod, Connection, Environment } from './types';
 
-type EnvironmentInfo = {
-  name: string;
-  badge: string;
-  color: string;
-};
-
-export const ENVIRONMENTS: Record<Environment, EnvironmentInfo> = {
-  prod: { name: 'Production', badge: 'PROD', color: '#FF7B72' },
-  staging: { name: 'Staging', badge: 'STAGING', color: '#E3B341' },
-  perso: { name: 'Perso', badge: 'PERSO', color: '#79C0FF' },
+export const ENVIRONMENT_COLORS: Record<Environment, string> = {
+  prod: '#FF7B72',
+  staging: '#E3B341',
+  perso: '#79C0FF',
 };
 
 export const ENVIRONMENT_ORDER: Environment[] = ['prod', 'staging', 'perso'];
 
-export const AUTH_METHODS: { value: AuthMethod; label: string }[] = [
-  { value: 'key', label: 'Clé SSH' },
-  { value: 'password', label: 'Mot de passe' },
-  { value: 'agent', label: 'Agent SSH' },
-];
+export const AUTH_METHOD_ORDER: AuthMethod[] = ['key', 'password', 'agent'];
 
-export const describeAuth = (connection: Connection) => {
+export const describeAuth = (connection: Connection, messages: Messages) => {
   if (connection.auth === 'password') {
-    return 'mot de passe';
+    return messages.auth.password;
   }
   if (connection.auth === 'agent') {
-    return 'agent SSH';
+    return messages.auth.agent;
   }
-  return `clé ${connection.keyName}`;
+  return messages.auth.key(connection.keyName);
 };
 
 export const formatAddress = (connection: Connection) =>

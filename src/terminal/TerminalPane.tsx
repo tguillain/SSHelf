@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebglAddon } from '@xterm/addon-webgl';
-import { ENVIRONMENTS, formatAddress } from '../connections/environments';
+import { ENVIRONMENT_COLORS, formatAddress } from '../connections/environments';
 import type { Connection } from '../connections/types';
+import { formatBackendMessage } from '../i18n/backendMessage';
+import { useI18n } from '../i18n/useI18n';
 import type { SessionStatus } from '../sessions/useSessions';
 import { Icon } from '../ui/Icon';
 import { HostKeyPrompt } from './HostKeyPrompt';
@@ -33,11 +35,17 @@ export const TerminalPane = ({
   const fitRef = useRef<FitAddon | null>(null);
   const sessionRef = useRef<SshSession | null>(null);
   const onStatusChangeRef = useRef(onStatusChange);
+  const { messages } = useI18n();
+  const messagesRef = useRef(messages);
   const [prompt, setPrompt] = useState<SessionPrompt | null>(null);
 
   useEffect(() => {
     onStatusChangeRef.current = onStatusChange;
   }, [onStatusChange]);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -61,7 +69,7 @@ export const TerminalPane = ({
       webgl.onContextLoss(() => webgl.dispose());
       terminal.loadAddon(webgl);
     } catch (error) {
-      console.warn('Rendu WebGL indisponible, rendu par défaut utilisé', error);
+      console.warn('WebGL renderer unavailable, falling back to the default renderer', error);
     }
     if (container.offsetParent !== null) {
       fit.fit();
@@ -69,6 +77,7 @@ export const TerminalPane = ({
     const session = createSshSession(terminal, connection, {
       onStatus: (status) => onStatusChangeRef.current(status),
       onPrompt: setPrompt,
+      messages: () => messagesRef.current,
     });
     const observer = new ResizeObserver(() => {
       if (container.offsetParent !== null) {
@@ -103,7 +112,8 @@ export const TerminalPane = ({
     return () => cancelAnimationFrame(frame);
   }, [isVisible, isFocused, prompt]);
 
-  const environment = ENVIRONMENTS[connection.environment];
+  const color = ENVIRONMENT_COLORS[connection.environment];
+  const secretMessage = prompt?.kind === 'secret' ? formatBackendMessage(messages.backend, prompt.message) : '';
 
   return (
     <section
@@ -113,8 +123,8 @@ export const TerminalPane = ({
     >
       {showHeader && (
         <button type="button" className="pane__header" onClick={onFocus}>
-          <span className="badge" style={{ color: environment.color, background: `${environment.color}24` }}>
-            {environment.badge}
+          <span className="badge" style={{ color, background: `${color}24` }}>
+            {messages.environments[connection.environment].badge}
           </span>
           <span className="pane__name">{connection.name}</span>
           <span className="pane__address">{formatAddress(connection)}</span>
@@ -123,7 +133,7 @@ export const TerminalPane = ({
       {connection.environment === 'prod' && (
         <div className="pane__warning">
           <Icon name="warning" size={14} />
-          Serveur de production — les commandes s’exécutent en direct
+          {messages.terminal.productionWarning}
         </div>
       )}
       <div className="pane__body">
@@ -139,9 +149,9 @@ export const TerminalPane = ({
               />
             ) : (
               <SecretPrompt
-                key={prompt.message}
+                key={secretMessage}
                 secretKind={prompt.secretKind}
-                message={prompt.message}
+                message={secretMessage}
                 onSubmit={(secret, remember) => sessionRef.current?.submitSecret(secret, remember)}
                 onCancel={() => sessionRef.current?.cancelPrompt()}
               />

@@ -1,4 +1,5 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { useI18n } from '../i18n/useI18n';
 import { Icon } from '../ui/Icon';
 
 type TitleBarProps = {
@@ -6,6 +7,7 @@ type TitleBarProps = {
 };
 
 export const TitleBar = ({ subtitle }: TitleBarProps) => {
+  const { messages } = useI18n();
   const appWindow = {
     minimize: () => getCurrentWindow().minimize(),
     toggleMaximize: () => getCurrentWindow().toggleMaximize(),
@@ -27,13 +29,13 @@ export const TitleBar = ({ subtitle }: TitleBarProps) => {
       </span>
       <div className="titlebar__drag" data-tauri-drag-region />
       <div className="titlebar__controls">
-        <button type="button" className="titlebar__control" aria-label="Réduire" onClick={() => appWindow.minimize()}>
+        <button type="button" className="titlebar__control" aria-label={messages.titleBar.minimize} onClick={() => appWindow.minimize()}>
           <Icon name="minimize" size={14} strokeWidth={1.5} />
         </button>
         <button
           type="button"
           className="titlebar__control"
-          aria-label="Agrandir"
+          aria-label={messages.titleBar.maximize}
           onClick={() => appWindow.toggleMaximize()}
         >
           <Icon name="maximize" size={13} strokeWidth={1.5} />
@@ -41,7 +43,7 @@ export const TitleBar = ({ subtitle }: TitleBarProps) => {
         <button
           type="button"
           className="titlebar__control titlebar__control--close"
-          aria-label="Fermer"
+          aria-label={messages.titleBar.close}
           onClick={() => appWindow.close()}
         >
           <Icon name="close" size={14} strokeWidth={1.5} />

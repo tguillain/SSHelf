@@ -1072,3 +1072,20 @@ select:focus-visible {
   margin: 0;
   accent-color: var(--accent);
 }
+
+.statusbar__language {
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.statusbar__language:hover {
+  color: var(--text);
+  border-color: var(--text-soft);
+}

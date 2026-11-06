@@ -1,5 +1,6 @@
 import { Channel, invoke } from '@tauri-apps/api/core';
 import type { Connection, ImportedHost } from './connections/types';
+import type { BackendMessage } from './i18n/backendMessage';
 
 export const loadConnections = () => invoke<Connection[]>('load_connections');
 
@@ -11,9 +12,9 @@ export const importSshConfig = () => invoke<ImportedHost[]>('import_ssh_config')
 export const listPrivateKeys = () => invoke<string[]>('list_private_keys');
 
 export type SessionEvent =
-  | { kind: 'progress'; message: string }
+  | { kind: 'progress'; message: BackendMessage }
   | { kind: 'hostKeyPrompt'; algorithm: string; fingerprint: string }
-  | { kind: 'closed'; reason: string };
+  | { kind: 'closed'; reason: BackendMessage };
 
 export type ConnectErrorCode =
   | 'passwordRequired'
@@ -29,7 +30,7 @@ export type ConnectErrorCode =
 
 export type ConnectError = {
   code: ConnectErrorCode;
-  message: string;
+  message: BackendMessage;
 };
 
 export type ConnectRequest = {
@@ -45,7 +46,7 @@ const isConnectError = (value: unknown): value is ConnectError =>
   typeof value === 'object' && value !== null && 'code' in value && 'message' in value;
 
 export const toConnectError = (error: unknown): ConnectError =>
-  isConnectError(error) ? error : { code: 'protocol', message: String(error) };
+  isConnectError(error) ? error : { code: 'protocol', message: { key: 'protocolError', detail: String(error) } };
 
 export const sshConnect = (request: ConnectRequest, events: Channel<SessionEvent>, output: Channel<ArrayBuffer>) =>
   invoke<void>('ssh_connect', { request, events, output });

@@ -1,6 +1,7 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react';
-import { AUTH_METHODS, ENVIRONMENT_ORDER, ENVIRONMENTS } from '../connections/environments';
+import { AUTH_METHOD_ORDER, ENVIRONMENT_COLORS, ENVIRONMENT_ORDER } from '../connections/environments';
 import type { AuthMethod, Connection, Environment } from '../connections/types';
+import { useI18n } from '../i18n/useI18n';
 import { Icon } from '../ui/Icon';
 
 type NewConnectionDialogProps = {
@@ -23,6 +24,7 @@ const DEFAULT_KEY = 'id_ed25519';
 const MAX_PORT = 65535;
 
 export const NewConnectionDialog = ({ privateKeys, onCancel, onSave }: NewConnectionDialogProps) => {
+  const { messages } = useI18n();
   const keyChoices = privateKeys.length > 0 ? privateKeys : [DEFAULT_KEY];
   const [draft, setDraft] = useState<Draft>({
     name: '',
@@ -76,9 +78,9 @@ export const NewConnectionDialog = ({ privateKeys, onCancel, onSave }: NewConnec
       >
         <div className="dialog__header">
           <h2 id="new-connection-title" className="dialog__title">
-            Nouvelle connexion
+            {messages.dialog.title}
           </h2>
-          <button type="button" className="button button--ghost button--icon" aria-label="Fermer" onClick={onCancel}>
+          <button type="button" className="button button--ghost button--icon" aria-label={messages.dialog.close} onClick={onCancel}>
             <Icon name="close" size={14} strokeWidth={2.4} />
           </button>
         </div>
@@ -86,12 +88,12 @@ export const NewConnectionDialog = ({ privateKeys, onCancel, onSave }: NewConnec
         <div className="dialog__body">
           <div className="field">
             <label htmlFor="connection-name" className="field__label">
-              Nom affiché
+              {messages.dialog.name}
             </label>
             <input
               id="connection-name"
               className="input"
-              placeholder="ex. web-prod-02"
+              placeholder={messages.dialog.namePlaceholder}
               autoFocus
               value={draft.name}
               onChange={(event) => update('name', event.target.value)}
@@ -100,19 +102,19 @@ export const NewConnectionDialog = ({ privateKeys, onCancel, onSave }: NewConnec
           <div className="field-row">
             <div className="field field--grow">
               <label htmlFor="connection-host" className="field__label">
-                Hôte
+                {messages.dialog.host}
               </label>
               <input
                 id="connection-host"
                 className="input mono"
-                placeholder="10.0.1.22 ou serveur.domaine.fr"
+                placeholder={messages.dialog.hostPlaceholder}
                 value={draft.host}
                 onChange={(event) => update('host', event.target.value)}
               />
             </div>
             <div className="field field--port">
               <label htmlFor="connection-port" className="field__label">
-                Port
+                {messages.dialog.port}
               </label>
               <input
                 id="connection-port"
@@ -126,7 +128,7 @@ export const NewConnectionDialog = ({ privateKeys, onCancel, onSave }: NewConnec
           </div>
           <div className="field">
             <label htmlFor="connection-user" className="field__label">
-              Utilisateur
+              {messages.dialog.user}
             </label>
             <input
               id="connection-user"
@@ -137,7 +139,7 @@ export const NewConnectionDialog = ({ privateKeys, onCancel, onSave }: NewConnec
             />
           </div>
           <fieldset className="field">
-            <legend className="field__label">Groupe</legend>
+            <legend className="field__label">{messages.dialog.group}</legend>
             <div className="segmented">
               {ENVIRONMENT_ORDER.map((environment) => (
                 <button
@@ -147,31 +149,31 @@ export const NewConnectionDialog = ({ privateKeys, onCancel, onSave }: NewConnec
                   aria-pressed={draft.environment === environment}
                   onClick={() => update('environment', environment)}
                 >
-                  <span className="tab__dot" style={{ background: ENVIRONMENTS[environment].color }} />
-                  {ENVIRONMENTS[environment].name}
+                  <span className="tab__dot" style={{ background: ENVIRONMENT_COLORS[environment] }} />
+                  {messages.environments[environment].name}
                 </button>
               ))}
             </div>
           </fieldset>
           <fieldset className="field">
-            <legend className="field__label">Authentification</legend>
+            <legend className="field__label">{messages.dialog.authentication}</legend>
             <div className="segmented">
-              {AUTH_METHODS.map((method) => (
+              {AUTH_METHOD_ORDER.map((method) => (
                 <button
-                  key={method.value}
+                  key={method}
                   type="button"
-                  className={`segmented__option${draft.auth === method.value ? ' segmented__option--selected' : ''}`}
-                  aria-pressed={draft.auth === method.value}
-                  onClick={() => update('auth', method.value)}
+                  className={`segmented__option${draft.auth === method ? ' segmented__option--selected' : ''}`}
+                  aria-pressed={draft.auth === method}
+                  onClick={() => update('auth', method)}
                 >
-                  {method.label}
+                  {messages.auth.methods[method]}
                 </button>
               ))}
             </div>
             {draft.auth === 'key' && (
               <>
                 <label htmlFor="connection-key" className="visually-hidden">
-                  Clé privée
+                  {messages.dialog.privateKey}
                 </label>
                 <select
                   id="connection-key"
@@ -188,22 +190,20 @@ export const NewConnectionDialog = ({ privateKeys, onCancel, onSave }: NewConnec
               </>
             )}
             {draft.auth === 'password' && (
-              <p className="field__help">
-                Le mot de passe sera demandé à la connexion puis gardé dans le Gestionnaire d’identification Windows.
-              </p>
+              <p className="field__help">{messages.dialog.passwordHelp}</p>
             )}
             {draft.auth === 'agent' && (
-              <p className="field__help">Utilise les clés chargées dans l’agent OpenSSH ou Pageant. Rien n’est stocké par SSHelf.</p>
+              <p className="field__help">{messages.dialog.agentHelp}</p>
             )}
           </fieldset>
         </div>
 
         <div className="dialog__footer">
           <button type="button" className="button button--ghost" onClick={onCancel}>
-            Annuler
+            {messages.dialog.cancel}
           </button>
           <button type="submit" className="button button--primary" disabled={!canSave}>
-            Enregistrer et se connecter
+            {messages.dialog.save}
           </button>
         </div>
       </form>

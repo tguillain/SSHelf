@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { useI18n } from '../i18n/useI18n';
 import { Icon } from '../ui/Icon';
 import type { SecretKind } from './sshSession';
 
@@ -10,9 +11,10 @@ type SecretPromptProps = {
 };
 
 export const SecretPrompt = ({ secretKind, message, onSubmit, onCancel }: SecretPromptProps) => {
+  const { messages } = useI18n();
   const [secret, setSecret] = useState('');
   const [remember, setRemember] = useState(true);
-  const label = secretKind === 'password' ? 'Mot de passe' : 'Phrase de passe';
+  const label = secretKind === 'password' ? messages.secret.password : messages.secret.passphrase;
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -50,14 +52,14 @@ export const SecretPrompt = ({ secretKind, message, onSubmit, onCancel }: Secret
       </div>
       <label className="checkbox">
         <input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} />
-        Mémoriser dans le coffre sécurisé du système
+        {messages.secret.remember}
       </label>
       <div className="prompt__actions">
         <button type="button" className="button button--ghost" onClick={onCancel}>
-          Annuler
+          {messages.secret.cancel}
         </button>
         <button type="submit" className="button button--primary" disabled={!secret}>
-          Se connecter
+          {messages.secret.connect}
         </button>
       </div>
     </form>

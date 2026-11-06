@@ -13,6 +13,7 @@ use super::connect::{default_known_hosts, establish, ConnectContext, Established
 use super::errors::ConnectError;
 use super::events::SessionEvent;
 use super::handler::{ClientHandler, EventSink, PendingHostKeys};
+use super::message::Message;
 use crate::connections::Connection;
 
 pub enum Input {
@@ -32,8 +33,8 @@ impl SshState {
         let sessions = self.sessions.lock().unwrap_or_else(PoisonError::into_inner);
         let sender = sessions
             .get(session_id)
-            .ok_or_else(|| "session inconnue".to_string())?;
-        sender.send(input).map_err(|_| "session terminée".to_string())
+            .ok_or_else(|| "unknown session".to_string())?;
+        sender.send(input).map_err(|_| "session ended".to_string())
     }
 }
 
@@ -105,7 +106,7 @@ async fn pump(
     channel: russh::Channel<client::Msg>,
     mut inputs: mpsc::UnboundedReceiver<Input>,
     output: Channel<InvokeResponseBody>,
-) -> String {
+) -> Message {
     let (mut reader, writer) = channel.split();
     let mut exit_status = None;
 
@@ -118,9 +119,9 @@ async fn pump(
                 Some(ChannelMsg::ExitStatus { exit_status: status }) => exit_status = Some(status),
                 Some(ChannelMsg::Close) | None => {
                     break match exit_status {
-                        Some(status) => format!("Session terminée (code {status})"),
-                        None if handle.is_closed() => "Connexion interrompue".to_string(),
-                        None => "Session terminée".to_string(),
+                        Some(status) => Message::SessionExited { status },
+                        None if handle.is_closed() => Message::ConnectionLost,
+                        None => Message::SessionEnded,
                     };
                 }
                 Some(_) => {}
@@ -128,7 +129,7 @@ async fn pump(
             input = inputs.recv() => match input {
                 Some(Input::Data(bytes)) => {
                     if writer.data_bytes(bytes).await.is_err() {
-                        break "Connexion interrompue".to_string();
+                        break Message::ConnectionLost;
                     }
                 }
                 Some(Input::Resize { cols, rows }) => {
@@ -136,23 +137,32 @@ async fn pump(
                 }
                 Some(Input::Close) | None => {
                     let _ = writer.close().await;
-                    break "Session fermée".to_string();
+                    break Message::SessionClosed;
                 }
             },
         }
     };
 
-    let _ = handle.disconnect(Disconnect::ByApplication, "", "fr").await;
+    let _ = handle.disconnect(Disconnect::ByApplication, "", "").await;
     reason
 }
 
 #[tauri::command]
-pub fn ssh_write(state: State<'_, SshState>, session_id: String, data: String) -> Result<(), String> {
+pub fn ssh_write(
+    state: State<'_, SshState>,
+    session_id: String,
+    data: String,
+) -> Result<(), String> {
     state.send(&session_id, Input::Data(data.into_bytes()))
 }
 
 #[tauri::command]
-pub fn ssh_resize(state: State<'_, SshState>, session_id: String, cols: u32, rows: u32) -> Result<(), String> {
+pub fn ssh_resize(
+    state: State<'_, SshState>,
+    session_id: String,
+    cols: u32,
+    rows: u32,
+) -> Result<(), String> {
     state.send(&session_id, Input::Resize { cols, rows })
 }
 

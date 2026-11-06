@@ -10,6 +10,8 @@ import {
   type SessionEvent,
 } from '../backend';
 import type { Connection } from '../connections/types';
+import { formatBackendMessage, type BackendMessage } from '../i18n/backendMessage';
+import type { Messages } from '../i18n/types';
 import type { SessionStatus } from '../sessions/useSessions';
 
 const paint = (code: string) => (text: string) => `\x1b[${code}m${text}\x1b[0m`;
@@ -19,17 +21,17 @@ const yellow = paint('33');
 const red = paint('31');
 
 const NEWLINE = '\r\n';
-const RETRY_HINT = dim('Appuyez sur Entrée pour vous reconnecter.');
 
 export type SecretKind = 'password' | 'passphrase';
 
 export type SessionPrompt =
   | { kind: 'hostKey'; algorithm: string; fingerprint: string }
-  | { kind: 'secret'; secretKind: SecretKind; message: string };
+  | { kind: 'secret'; secretKind: SecretKind; message: BackendMessage };
 
 export type SessionCallbacks = {
   onStatus: (status: SessionStatus) => void;
   onPrompt: (prompt: SessionPrompt | null) => void;
+  messages: () => Messages;
 };
 
 export type SshSession = {
@@ -50,6 +52,8 @@ export const createSshSession = (
   let sessionId: string | null = null;
   let isAwaitingHostKey = false;
 
+  const describe = (message: BackendMessage) => formatBackendMessage(callbacks.messages().backend, message);
+
   const setPhase = (next: Exclude<Phase, 'disposed'>) => {
     if (phase === 'disposed') {
       return;
@@ -60,7 +64,7 @@ export const createSshSession = (
 
   const showClosed = (message: string, colorize: (text: string) => string) => {
     sessionId = null;
-    terminal.write(NEWLINE + colorize(message) + NEWLINE + RETRY_HINT + NEWLINE);
+    terminal.write(NEWLINE + colorize(message) + NEWLINE + dim(callbacks.messages().terminal.retryHint) + NEWLINE);
     setPhase('closed');
   };
 
@@ -75,12 +79,12 @@ export const createSshSession = (
         return;
       }
       if (event.kind === 'progress') {
-        terminal.write(`${blue('→')} ${event.message}${NEWLINE}`);
+        terminal.write(`${blue('→')} ${describe(event.message)}${NEWLINE}`);
       } else if (event.kind === 'hostKeyPrompt') {
         isAwaitingHostKey = true;
         callbacks.onPrompt({ kind: 'hostKey', algorithm: event.algorithm, fingerprint: event.fingerprint });
       } else {
-        showClosed(event.reason, yellow);
+        showClosed(describe(event.reason), yellow);
       }
     };
 
@@ -121,7 +125,7 @@ export const createSshSession = (
         });
         return;
       }
-      showClosed(`✗ ${error.message}`, red);
+      showClosed(`✗ ${describe(error.message)}`, red);
     }
   };
 
@@ -156,7 +160,7 @@ export const createSshSession = (
     },
     cancelPrompt: () => {
       callbacks.onPrompt(null);
-      showClosed('Connexion annulée', yellow);
+      showClosed(callbacks.messages().terminal.cancelled, yellow);
     },
     dispose: () => {
       const id = sessionId;

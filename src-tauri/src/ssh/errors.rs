@@ -1,5 +1,7 @@
 use serde::Serialize;
 
+use super::message::Message;
+
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum ErrorCode {
@@ -18,15 +20,12 @@ pub enum ErrorCode {
 #[derive(Debug, Serialize)]
 pub struct ConnectError {
     pub code: ErrorCode,
-    pub message: String,
+    pub message: Message,
 }
 
 impl ConnectError {
-    pub fn new(code: ErrorCode, message: impl Into<String>) -> Self {
-        Self {
-            code,
-            message: message.into(),
-        }
+    pub fn new(code: ErrorCode, message: Message) -> Self {
+        Self { code, message }
     }
 }
 
@@ -47,14 +46,26 @@ impl From<russh::Error> for HandlerError {
 impl From<russh::Error> for ConnectError {
     fn from(error: russh::Error) -> Self {
         match error {
-            russh::Error::IO(io) => ConnectError::new(ErrorCode::Network, format!("Erreur réseau : {io}")),
+            russh::Error::IO(io) => ConnectError::new(
+                ErrorCode::Network,
+                Message::NetworkError {
+                    detail: io.to_string(),
+                },
+            ),
             russh::Error::HUP | russh::Error::Disconnect => {
-                ConnectError::new(ErrorCode::Network, "Connexion fermée par le serveur")
+                ConnectError::new(ErrorCode::Network, Message::ClosedByServer)
             }
-            russh::Error::KeepaliveTimeout | russh::Error::InactivityTimeout | russh::Error::ConnectionTimeout => {
-                ConnectError::new(ErrorCode::Timeout, "Le serveur ne répond plus")
+            russh::Error::KeepaliveTimeout
+            | russh::Error::InactivityTimeout
+            | russh::Error::ConnectionTimeout => {
+                ConnectError::new(ErrorCode::Timeout, Message::ServerUnresponsive)
             }
-            other => ConnectError::new(ErrorCode::Protocol, format!("Erreur SSH : {other}")),
+            other => ConnectError::new(
+                ErrorCode::Protocol,
+                Message::ProtocolError {
+                    detail: other.to_string(),
+                },
+            ),
         }
     }
 }
@@ -64,16 +75,14 @@ impl From<HandlerError> for ConnectError {
         match error {
             HandlerError::Ssh(ssh) => ssh.into(),
             HandlerError::HostKeyRejected => {
-                ConnectError::new(ErrorCode::HostKeyRejected, "Empreinte du serveur refusée")
+                ConnectError::new(ErrorCode::HostKeyRejected, Message::HostKeyRejected)
             }
             HandlerError::HostKeyChanged { line, fingerprint } => ConnectError::new(
                 ErrorCode::HostKeyChanged,
-                format!(
-                    "ATTENTION : la clé du serveur a changé ({fingerprint}). Elle ne correspond plus à la ligne {line} de ~/.ssh/known_hosts. Connexion bloquée : vérifiez auprès de l’administrateur avant de supprimer l’ancienne entrée."
-                ),
+                Message::HostKeyChanged { fingerprint, line },
             ),
             HandlerError::HostCertificateUnsupported => {
-                ConnectError::new(ErrorCode::Protocol, "Les certificats d’hôte ne sont pas encore pris en charge")
+                ConnectError::new(ErrorCode::Protocol, Message::HostCertificateUnsupported)
             }
         }
     }

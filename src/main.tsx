@@ -6,13 +6,16 @@ import '@fontsource/jetbrains-mono/700.css';
 import '@xterm/xterm/css/xterm.css';
 import './styles.css';
 import { App } from './App';
+import { LocaleProvider } from './i18n/LocaleProvider';
 
 const root = document.getElementById('root');
 
 if (root) {
   createRoot(root).render(
     <StrictMode>
-      <App />
+      <LocaleProvider>
+        <App />
+      </LocaleProvider>
     </StrictMode>,
   );
 }

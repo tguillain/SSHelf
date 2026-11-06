@@ -61,7 +61,8 @@ SSHelf puts all of that on a shelf.
 - **Warning banner** on production servers, so you always know where you're typing.
 
 > [!NOTE]
-> The interface is currently in French. An English translation is on the [roadmap](#roadmap).
+> The interface is available in English and French. It follows your system language, and the
+> **EN / FR** button in the status bar switches it at any time.
 
 ## Installation
 
@@ -84,7 +85,7 @@ Download the installer for your system from the
 
 SSHelf is just getting started. Here's what's next:
 
-- [ ] English interface
+- [x] English interface
 - [ ] Full command palette (<kbd>Ctrl</kbd>+<kbd>K</kbd> to open, connect, switch tabs)
 - [ ] Drag-and-drop **SFTP** file transfer
 - [ ] **Tunnels** and port forwarding

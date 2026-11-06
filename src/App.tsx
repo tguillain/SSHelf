@@ -3,6 +3,7 @@ import { importSshConfig, listPrivateKeys } from './backend';
 import { fromImportedHost } from './connections/fromImportedHost';
 import type { Connection } from './connections/types';
 import { useConnections } from './connections/useConnections';
+import { useI18n } from './i18n/useI18n';
 import { NewConnectionDialog } from './dialogs/NewConnectionDialog';
 import { EmptyState } from './layout/EmptyState';
 import { StatusBar } from './layout/StatusBar';
@@ -19,6 +20,7 @@ const isInsideTerminal = (target: EventTarget | null) => target instanceof Eleme
 export const App = () => {
   const { connections, storageError, addConnection, removeConnection, mergeConnections } = useConnections();
   const sessions = useSessions();
+  const { messages } = useI18n();
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [privateKeys, setPrivateKeys] = useState<string[]>([]);
@@ -50,13 +52,13 @@ export const App = () => {
     try {
       const hosts = await importSshConfig();
       if (hosts.length === 0) {
-        setImportMessage('Aucun hôte trouvé dans ~/.ssh/config');
+        setImportMessage(messages.app.importNoHosts);
         return;
       }
       const added = mergeConnections(hosts.map(fromImportedHost));
-      setImportMessage(added === 0 ? 'Tous les hôtes sont déjà présents' : `${added} hôte${added > 1 ? 's' : ''} importé${added > 1 ? 's' : ''}`);
+      setImportMessage(added === 0 ? messages.app.importAllPresent : messages.app.imported(added));
     } catch (error) {
-      setImportMessage(`Import impossible : ${String(error)}`);
+      setImportMessage(messages.app.importFailed(String(error)));
     }
   };
 
@@ -76,7 +78,7 @@ export const App = () => {
 
   return (
     <div className="app">
-      <TitleBar subtitle={activeConnection ? `${activeConnection.user}@${activeConnection.name}` : 'Aucune session'} />
+      <TitleBar subtitle={activeConnection ? `${activeConnection.user}@${activeConnection.name}` : messages.app.noSession} />
       <div className="app__body">
         <Sidebar
           connections={connections}
