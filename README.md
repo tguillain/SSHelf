@@ -41,15 +41,20 @@ SSHelf puts all of that on a shelf.
 - Saved connections **grouped by environment**: production, staging, personal.
 - **Instant search** (<kbd>Ctrl</kbd>+<kbd>K</kbd>) to find one server among dozens.
 - **Import from `~/.ssh/config`**: bring your existing hosts in with one click.
+- **Edit or duplicate** a saved connection: perfect for `web-01`, `web-02`, `web-03`…
 
 ### Many sessions, one window
 - Each connection opens in its own **tab**; middle-click to close it.
+- **Several sessions on the same server**: <kbd>Ctrl</kbd>+click a server (or its **+** button) to open
+  another tab on it, for example to keep a `tail -f` running while you work.
 - **Split view** to keep two servers side by side.
 - Connection dropped? Press <kbd>Enter</kbd> to **reconnect**.
 
 ### A real terminal
 - **WebGL-accelerated xterm.js** rendering: 256 colours, and `vim`, `htop` and `tmux` display properly.
 - Automatic resizing, 10,000 lines of scrollback, JetBrains Mono font.
+- **Search the scrollback**, **zoom** the font, **copy on select** and **paste with a right-click**.
+- **Clickable links**: <kbd>Ctrl</kbd>+click a URL to open it in your browser.
 
 ### Security first
 - **Host key verification** against your `~/.ssh/known_hosts`: confirmation on first contact,
@@ -60,9 +65,26 @@ SSHelf puts all of that on a shelf.
   (OpenSSH, Pageant).
 - **Warning banner** on production servers, so you always know where you're typing.
 
+### Always up to date
+- SSHelf checks for new versions on startup and **updates itself in one click**.
+  Updates are signed and verified before they are installed.
+
 > [!NOTE]
 > The interface is available in English and French. It follows your system language, and the
 > **EN / FR** button in the status bar switches it at any time.
+
+## Keyboard shortcuts
+
+| Shortcut | Action |
+|---|---|
+| <kbd>Ctrl</kbd>+<kbd>K</kbd> | Search servers |
+| <kbd>Ctrl</kbd>+click on a server | Open another session on it |
+| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> | Search the terminal scrollback |
+| <kbd>Ctrl</kbd>+<kbd>=</kbd> / <kbd>Ctrl</kbd>+<kbd>-</kbd> / <kbd>Ctrl</kbd>+<kbd>0</kbd> | Zoom in / out / reset |
+| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> | Copy / paste |
+| Right-click in the terminal | Copy the selection, or paste when nothing is selected |
+| Middle-click on a tab | Close it |
+| <kbd>Enter</kbd> after a disconnection | Reconnect |
 
 ## Installation
 
@@ -90,7 +112,9 @@ SSHelf is just getting started. Here's what's next:
 - [ ] Drag-and-drop **SFTP** file transfer
 - [ ] **Tunnels** and port forwarding
 - [ ] Light theme and a settings page
-- [ ] Signed installers and automatic updates
+- [x] Automatic updates
+- [ ] Code-signed installers
+- [ ] Jump hosts (ProxyJump)
 
 Got an idea or a need? [Open an issue](https://github.com/tguillain/SSHelf/issues):
 now is the best time to shape where the project goes.
@@ -129,6 +153,9 @@ npm run tauri dev
 2. Push a tag: `git tag v0.2.0 && git push origin v0.2.0`.
 3. GitHub Actions runs the tests, builds the installers for all three platforms and prepares
    a draft release, ready to publish from the *Releases* tab.
+
+Update packages are signed: the repository needs a `TAURI_SIGNING_PRIVATE_KEY` secret holding the
+private key whose public half is in `src-tauri/tauri.conf.json`. Local builds don't need it.
 
 ## Contributing
 

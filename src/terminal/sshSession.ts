@@ -45,7 +45,7 @@ type Phase = 'connecting' | 'connected' | 'closed' | 'disposed';
 
 export const createSshSession = (
   terminal: Terminal,
-  connection: Connection,
+  currentConnection: () => Connection,
   callbacks: SessionCallbacks,
 ): SshSession => {
   let phase: Phase = 'connecting';
@@ -97,7 +97,14 @@ export const createSshSession = (
 
     try {
       await sshConnect(
-        { sessionId: id, connection, secret, rememberSecret, cols: terminal.cols, rows: terminal.rows },
+        {
+          sessionId: id,
+          connection: currentConnection(),
+          secret,
+          rememberSecret,
+          cols: terminal.cols,
+          rows: terminal.rows,
+        },
         events,
         output,
       );

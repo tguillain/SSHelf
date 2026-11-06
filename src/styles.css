@@ -676,13 +676,19 @@ select:focus-visible {
 }
 
 .pane__name {
+  flex-shrink: 0;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .pane__address {
+  min-width: 0;
+  overflow: hidden;
   color: var(--faint);
   font-family: var(--font-mono);
   font-size: 11.5px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .pane__warning {
@@ -1088,4 +1094,132 @@ select:focus-visible {
 .statusbar__language:hover {
   color: var(--text);
   border-color: var(--text-soft);
+}
+
+.connection__action {
+  display: none;
+  height: 28px;
+  width: 28px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--faint);
+}
+
+.connection:hover .connection__action,
+.connection__action:focus-visible {
+  display: flex;
+}
+
+.connection__action:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.terminal-search {
+  position: absolute;
+  top: 10px;
+  right: 18px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 4px 10px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  color: var(--faint);
+}
+
+.terminal-search__input {
+  width: 200px;
+  height: 26px;
+  padding: 0 6px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  user-select: text;
+}
+
+.terminal-search__button {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--faint);
+}
+
+.terminal-search__button:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.icon--up {
+  transform: rotate(-90deg);
+}
+
+.icon--down {
+  transform: rotate(90deg);
+}
+
+.update {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--accent-tint);
+  color: var(--accent);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.update:hover {
+  background: var(--accent);
+  color: var(--bg-deep);
+}
+
+.update--busy {
+  cursor: default;
+}
+
+.update--busy:hover {
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+
+.update--failed {
+  background: rgba(255, 123, 114, 0.12);
+  color: var(--red-soft);
+}
+
+.statusbar > * {
+  flex-shrink: 0;
+}
+
+.statusbar > .statusbar__shrink,
+.statusbar > .statusbar__error {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 1200px) {
+  .statusbar__extra {
+    display: none;
+  }
 }

@@ -8,12 +8,15 @@ import { ConnectionRow } from './ConnectionRow';
 
 type SidebarProps = {
   connections: Connection[];
-  activeId: string | null;
+  activeConnectionId: string | null;
   searchRef: RefObject<HTMLInputElement | null>;
   statusOf: (connectionId: string) => SessionStatus | null;
   importMessage: string | null;
   onOpen: (connectionId: string) => void;
+  onOpenNew: (connectionId: string) => void;
   onDelete: (connectionId: string) => void;
+  onEdit: (connection: Connection) => void;
+  onDuplicate: (connection: Connection) => void;
   onNew: () => void;
   onImport: () => void;
 };
@@ -23,12 +26,15 @@ const matches = (connection: Connection, query: string) =>
 
 export const Sidebar = ({
   connections,
-  activeId,
+  activeConnectionId,
   searchRef,
   statusOf,
   importMessage,
   onOpen,
+  onOpenNew,
   onDelete,
+  onEdit,
+  onDuplicate,
   onNew,
   onImport,
 }: SidebarProps) => {
@@ -92,9 +98,12 @@ export const Sidebar = ({
                     key={connection.id}
                     connection={connection}
                     status={statusOf(connection.id)}
-                    isActive={connection.id === activeId}
+                    isActive={connection.id === activeConnectionId}
                     onOpen={() => onOpen(connection.id)}
+                    onOpenNew={() => onOpenNew(connection.id)}
                     onDelete={() => onDelete(connection.id)}
+                    onEdit={() => onEdit(connection)}
+                    onDuplicate={() => onDuplicate(connection)}
                   />
                 ))}
             </div>

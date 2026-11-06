@@ -49,12 +49,19 @@ export const fr: Messages = {
   },
   connectionRow: {
     states: { connecting: 'Connexion en cours', connected: 'Session ouverte', closed: 'Session déconnectée' },
-    connectTo: (address) => `Se connecter à ${address}`,
+    connectTo: (address) => `Se connecter à ${address} (Ctrl+clic : nouvelle session)`,
     delete: (name) => `Supprimer ${name}`,
     confirmDelete: (name) => `Confirmer la suppression de ${name}`,
     deleteTitle: 'Supprimer',
     clickAgainToDelete: 'Cliquer à nouveau pour supprimer',
     deleteQuestion: 'Supprimer ?',
+    edit: (name) => `Modifier ${name}`,
+    editTitle: 'Modifier',
+    duplicate: (name) => `Dupliquer ${name}`,
+    duplicateTitle: 'Dupliquer',
+    copyName: (name) => `${name} (copie)`,
+    newSession: (name) => `Ouvrir une autre session sur ${name}`,
+    newSessionTitle: 'Nouvelle session (Ctrl+clic)',
   },
   environments: {
     prod: { name: 'Production', badge: 'PROD' },
@@ -69,6 +76,7 @@ export const fr: Messages = {
   },
   dialog: {
     title: 'Nouvelle connexion',
+    editTitle: 'Modifier la connexion',
     close: 'Fermer',
     name: 'Nom affiché',
     namePlaceholder: 'ex. web-prod-02',
@@ -83,11 +91,16 @@ export const fr: Messages = {
     agentHelp: 'Utilise les clés chargées dans l’agent SSH (OpenSSH ou Pageant). Rien n’est stocké par SSHelf.',
     cancel: 'Annuler',
     save: 'Enregistrer et se connecter',
+    update: 'Enregistrer',
   },
   terminal: {
     productionWarning: 'Serveur de production — les commandes s’exécutent en direct',
     retryHint: 'Appuyez sur Entrée pour vous reconnecter.',
     cancelled: 'Connexion annulée',
+    searchPlaceholder: 'Rechercher dans le terminal',
+    searchPrevious: 'Résultat précédent (Maj+Entrée)',
+    searchNext: 'Résultat suivant (Entrée)',
+    searchClose: 'Fermer la recherche (Échap)',
   },
   hostKey: {
     title: (host) => `Premier contact avec ${host}`,
@@ -103,6 +116,12 @@ export const fr: Messages = {
     remember: 'Mémoriser dans le trousseau sécurisé du système',
     cancel: 'Annuler',
     connect: 'Se connecter',
+  },
+  update: {
+    available: (version) => `Version ${version} disponible`,
+    installHint: 'Installer la mise à jour et redémarrer SSHelf (les sessions ouvertes seront fermées)',
+    installing: (percent) => (percent === null ? 'Mise à jour…' : `Mise à jour… ${percent} %`),
+    failed: 'Mise à jour impossible, réessayer',
   },
   backend: {
     connecting: ({ host, port }) => `Connexion à ${host}:${port}…`,

@@ -1,6 +1,7 @@
 import { ENVIRONMENT_COLORS } from '../connections/environments';
 import type { Connection } from '../connections/types';
 import { useI18n } from '../i18n/useI18n';
+import { sessionLabel } from '../sessions/sessionLabel';
 import type { Session } from '../sessions/useSessions';
 import { Icon } from '../ui/Icon';
 
@@ -9,8 +10,8 @@ type TabBarProps = {
   connectionsById: Map<string, Connection>;
   activeId: string | null;
   isSplitRequested: boolean;
-  onSelect: (connectionId: string) => void;
-  onClose: (connectionId: string) => void;
+  onSelect: (sessionId: string) => void;
+  onClose: (sessionId: string) => void;
   onNew: () => void;
   onToggleSplit: () => void;
 };
@@ -35,26 +36,27 @@ export const TabBar = ({
         if (!connection) {
           return null;
         }
-        const isActive = session.connectionId === activeId;
+        const isActive = session.id === activeId;
+        const label = sessionLabel(connection, session);
         return (
-          <div key={session.connectionId} className={`tab${isActive ? ' tab--active' : ''}`}>
+          <div key={session.id} className={`tab${isActive ? ' tab--active' : ''}`}>
             <button
               type="button"
               role="tab"
               aria-selected={isActive}
               className="tab__select"
-              onClick={() => onSelect(session.connectionId)}
-              onAuxClick={(event) => event.button === 1 && onClose(session.connectionId)}
+              onClick={() => onSelect(session.id)}
+              onAuxClick={(event) => event.button === 1 && onClose(session.id)}
             >
               <span className="tab__dot" style={{ background: ENVIRONMENT_COLORS[connection.environment] }} />
-              <span className="tab__name">{connection.name}</span>
+              <span className="tab__name">{label}</span>
               {session.status === 'connecting' && <Icon name="spinner" size={12} strokeWidth={3} className="spin tab__spinner" />}
             </button>
             <button
               type="button"
               className="tab__close"
-              aria-label={messages.tabs.close(connection.name)}
-              onClick={() => onClose(session.connectionId)}
+              aria-label={messages.tabs.close(label)}
+              onClick={() => onClose(session.id)}
             >
               <Icon name="close" size={12} strokeWidth={2.6} />
             </button>

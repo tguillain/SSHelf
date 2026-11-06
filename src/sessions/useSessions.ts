@@ -3,9 +3,13 @@ import { useCallback, useMemo, useState } from 'react';
 export type SessionStatus = 'connecting' | 'connected' | 'closed';
 
 export type Session = {
+  id: string;
   connectionId: string;
+  ordinal: number;
   status: SessionStatus;
 };
+
+const STATUS_PRIORITY: SessionStatus[] = ['connected', 'connecting', 'closed'];
 
 export const useSessions = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -13,43 +17,62 @@ export const useSessions = () => {
   const [partnerId, setPartnerId] = useState<string | null>(null);
   const [isSplitRequested, setSplitRequested] = useState(false);
 
-  const focus = (connectionId: string) => {
-    if (connectionId === activeId) {
+  const focus = (sessionId: string) => {
+    if (sessionId === activeId) {
       return;
     }
     setPartnerId(activeId);
-    setActiveId(connectionId);
+    setActiveId(sessionId);
+  };
+
+  const openNew = (connectionId: string) => {
+    const ordinals = sessions.filter((session) => session.connectionId === connectionId).map((session) => session.ordinal);
+    const session: Session = {
+      id: crypto.randomUUID(),
+      connectionId,
+      ordinal: ordinals.length > 0 ? Math.max(...ordinals) + 1 : 1,
+      status: 'connecting',
+    };
+    setSessions((current) => [...current, session]);
+    setPartnerId(activeId);
+    setActiveId(session.id);
   };
 
   const open = (connectionId: string) => {
-    if (sessions.some((session) => session.connectionId === connectionId)) {
-      focus(connectionId);
+    const active = sessions.find((session) => session.id === activeId);
+    if (active?.connectionId === connectionId) {
       return;
     }
-    setSessions((current) => [...current, { connectionId, status: 'connecting' }]);
-    setPartnerId(activeId);
-    setActiveId(connectionId);
+    const existing = sessions.find((session) => session.connectionId === connectionId);
+    if (existing) {
+      focus(existing.id);
+      return;
+    }
+    openNew(connectionId);
   };
 
-  const close = (connectionId: string) => {
-    const index = sessions.findIndex((session) => session.connectionId === connectionId);
-    if (index === -1) {
+  const removeWhere = (shouldRemove: (session: Session) => boolean) => {
+    const remaining = sessions.filter((session) => !shouldRemove(session));
+    if (remaining.length === sessions.length) {
       return;
     }
-    const remaining = sessions.filter((session) => session.connectionId !== connectionId);
     setSessions(remaining);
-    if (activeId === connectionId) {
-      setActiveId(remaining[Math.min(index, remaining.length - 1)]?.connectionId ?? null);
+    if (!remaining.some((session) => session.id === activeId)) {
+      const activeIndex = sessions.findIndex((session) => session.id === activeId);
+      const fallback = remaining[Math.min(Math.max(activeIndex, 0), remaining.length - 1)];
+      setActiveId(fallback?.id ?? null);
     }
     if (remaining.length < 2) {
       setSplitRequested(false);
     }
   };
 
-  const setStatus = useCallback((connectionId: string, status: SessionStatus) => {
-    setSessions((current) =>
-      current.map((session) => (session.connectionId === connectionId ? { ...session, status } : session)),
-    );
+  const close = (sessionId: string) => removeWhere((session) => session.id === sessionId);
+
+  const closeConnection = (connectionId: string) => removeWhere((session) => session.connectionId === connectionId);
+
+  const setStatus = useCallback((sessionId: string, status: SessionStatus) => {
+    setSessions((current) => current.map((session) => (session.id === sessionId ? { ...session, status } : session)));
   }, []);
 
   const visibleIds = useMemo(() => {
@@ -59,28 +82,35 @@ export const useSessions = () => {
     if (!isSplitRequested) {
       return [activeId];
     }
-    const partnerIsOpen = sessions.some((session) => session.connectionId === partnerId);
+    const partnerIsOpen = sessions.some((session) => session.id === partnerId);
     const partner =
       partnerId && partnerId !== activeId && partnerIsOpen
         ? partnerId
-        : sessions.find((session) => session.connectionId !== activeId)?.connectionId;
+        : sessions.find((session) => session.id !== activeId)?.id;
     return partner ? [activeId, partner] : [activeId];
   }, [activeId, partnerId, isSplitRequested, sessions]);
 
-  const statusOf = (connectionId: string) =>
-    sessions.find((session) => session.connectionId === connectionId)?.status ?? null;
+  const activeSession = sessions.find((session) => session.id === activeId) ?? null;
+
+  const statusOfConnection = (connectionId: string) => {
+    const statuses = sessions.filter((session) => session.connectionId === connectionId).map((session) => session.status);
+    return STATUS_PRIORITY.find((status) => statuses.includes(status)) ?? null;
+  };
 
   return {
     sessions,
     activeId,
+    activeSession,
     visibleIds,
     isSplit: visibleIds.length > 1,
     isSplitRequested,
     toggleSplit: () => setSplitRequested((current) => !current),
     open,
+    openNew,
     close,
+    closeConnection,
     focus,
     setStatus,
-    statusOf,
+    statusOfConnection,
   };
 };

@@ -10,12 +10,24 @@ type ConnectionRowProps = {
   status: SessionStatus | null;
   isActive: boolean;
   onOpen: () => void;
+  onOpenNew: () => void;
   onDelete: () => void;
+  onEdit: () => void;
+  onDuplicate: () => void;
 };
 
 const CONFIRM_TIMEOUT_MS = 3000;
 
-export const ConnectionRow = ({ connection, status, isActive, onOpen, onDelete }: ConnectionRowProps) => {
+export const ConnectionRow = ({
+  connection,
+  status,
+  isActive,
+  onOpen,
+  onOpenNew,
+  onDelete,
+  onEdit,
+  onDuplicate,
+}: ConnectionRowProps) => {
   const [isConfirmingDelete, setConfirmingDelete] = useState(false);
   const { messages } = useI18n();
   const color = ENVIRONMENT_COLORS[connection.environment];
@@ -39,7 +51,13 @@ export const ConnectionRow = ({ connection, status, isActive, onOpen, onDelete }
 
   return (
     <div className={`connection${isActive ? ' connection--active' : ''}`}>
-      <button type="button" className="connection__open" onClick={onOpen} title={messages.connectionRow.connectTo(address)}>
+      <button
+        type="button"
+        className="connection__open"
+        onClick={(event) => (event.ctrlKey || event.metaKey ? onOpenNew() : onOpen())}
+        onAuxClick={(event) => event.button === 1 && onOpenNew()}
+        title={messages.connectionRow.connectTo(address)}
+      >
         <span className="connection__icon" style={{ color, background: `${color}1F` }}>
           <Icon name="server" size={15} />
         </span>
@@ -54,6 +72,39 @@ export const ConnectionRow = ({ connection, status, isActive, onOpen, onDelete }
           </>
         )}
       </button>
+      {!isConfirmingDelete && (
+        <>
+          {status && (
+            <button
+              type="button"
+              className="connection__action"
+              onClick={onOpenNew}
+              aria-label={messages.connectionRow.newSession(connection.name)}
+              title={messages.connectionRow.newSessionTitle}
+            >
+              <Icon name="plus" size={14} strokeWidth={2.4} />
+            </button>
+          )}
+          <button
+            type="button"
+            className="connection__action"
+            onClick={onEdit}
+            aria-label={messages.connectionRow.edit(connection.name)}
+            title={messages.connectionRow.editTitle}
+          >
+            <Icon name="edit" size={14} />
+          </button>
+          <button
+            type="button"
+            className="connection__action"
+            onClick={onDuplicate}
+            aria-label={messages.connectionRow.duplicate(connection.name)}
+            title={messages.connectionRow.duplicateTitle}
+          >
+            <Icon name="copy" size={14} />
+          </button>
+        </>
+      )}
       <button
         type="button"
         className={`connection__delete${isConfirmingDelete ? ' connection__delete--confirm' : ''}`}

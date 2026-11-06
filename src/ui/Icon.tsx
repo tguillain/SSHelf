@@ -15,7 +15,9 @@ export type IconName =
   | 'spinner'
   | 'minimize'
   | 'maximize'
-  | 'key';
+  | 'key'
+  | 'edit'
+  | 'copy';
 
 const PATHS: Record<IconName, ReactNode> = {
   terminal: (
@@ -77,6 +79,18 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <circle cx="8" cy="15" r="4" />
       <path d="M10.8 12.2L20 3M16 7l3 3M14 9l2 2" />
+    </>
+  ),
+  edit: (
+    <>
+      <path d="M4 20h4L19 9l-4-4L4 16z" />
+      <path d="M13.5 6.5l4 4" />
+    </>
+  ),
+  copy: (
+    <>
+      <rect x="9" y="9" width="11" height="11" rx="2" />
+      <path d="M5 15V6a2 2 0 0 1 2-2h8" />
     </>
   ),
 };

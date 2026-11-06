@@ -49,12 +49,19 @@ export const en: Messages = {
   },
   connectionRow: {
     states: { connecting: 'Connecting', connected: 'Session open', closed: 'Session disconnected' },
-    connectTo: (address) => `Connect to ${address}`,
+    connectTo: (address) => `Connect to ${address} (Ctrl+click: new session)`,
     delete: (name) => `Delete ${name}`,
     confirmDelete: (name) => `Confirm deleting ${name}`,
     deleteTitle: 'Delete',
     clickAgainToDelete: 'Click again to delete',
     deleteQuestion: 'Delete?',
+    edit: (name) => `Edit ${name}`,
+    editTitle: 'Edit',
+    duplicate: (name) => `Duplicate ${name}`,
+    duplicateTitle: 'Duplicate',
+    copyName: (name) => `${name} (copy)`,
+    newSession: (name) => `Open another session on ${name}`,
+    newSessionTitle: 'New session (Ctrl+click)',
   },
   environments: {
     prod: { name: 'Production', badge: 'PROD' },
@@ -69,6 +76,7 @@ export const en: Messages = {
   },
   dialog: {
     title: 'New connection',
+    editTitle: 'Edit connection',
     close: 'Close',
     name: 'Display name',
     namePlaceholder: 'e.g. web-prod-02',
@@ -83,11 +91,16 @@ export const en: Messages = {
     agentHelp: 'Uses the keys loaded in your SSH agent (OpenSSH or Pageant). SSHelf stores nothing.',
     cancel: 'Cancel',
     save: 'Save and connect',
+    update: 'Save',
   },
   terminal: {
     productionWarning: 'Production server — commands run live',
     retryHint: 'Press Enter to reconnect.',
     cancelled: 'Connection cancelled',
+    searchPlaceholder: 'Search the terminal',
+    searchPrevious: 'Previous match (Shift+Enter)',
+    searchNext: 'Next match (Enter)',
+    searchClose: 'Close search (Esc)',
   },
   hostKey: {
     title: (host) => `First connection to ${host}`,
@@ -103,6 +116,12 @@ export const en: Messages = {
     remember: 'Remember in the system keychain',
     cancel: 'Cancel',
     connect: 'Connect',
+  },
+  update: {
+    available: (version) => `Version ${version} available`,
+    installHint: 'Install the update and restart SSHelf (open sessions will be closed)',
+    installing: (percent) => (percent === null ? 'Updating…' : `Updating… ${percent}%`),
+    failed: 'Update failed, try again',
   },
   backend: {
     connecting: ({ host, port }) => `Connecting to ${host}:${port}…`,

@@ -57,6 +57,13 @@ export type Messages = {
     deleteTitle: string;
     clickAgainToDelete: string;
     deleteQuestion: string;
+    edit: (name: string) => string;
+    editTitle: string;
+    duplicate: (name: string) => string;
+    duplicateTitle: string;
+    copyName: (name: string) => string;
+    newSession: (name: string) => string;
+    newSessionTitle: string;
   };
   environments: Record<Environment, { name: string; badge: string }>;
   auth: {
@@ -67,6 +74,7 @@ export type Messages = {
   };
   dialog: {
     title: string;
+    editTitle: string;
     close: string;
     name: string;
     namePlaceholder: string;
@@ -81,11 +89,16 @@ export type Messages = {
     agentHelp: string;
     cancel: string;
     save: string;
+    update: string;
   };
   terminal: {
     productionWarning: string;
     retryHint: string;
     cancelled: string;
+    searchPlaceholder: string;
+    searchPrevious: string;
+    searchNext: string;
+    searchClose: string;
   };
   hostKey: {
     title: (host: string) => string;
@@ -101,6 +114,12 @@ export type Messages = {
     remember: string;
     cancel: string;
     connect: string;
+  };
+  update: {
+    available: (version: string) => string;
+    installHint: string;
+    installing: (percent: number | null) => string;
+    failed: string;
   };
   backend: BackendMessageFormatters;
 };

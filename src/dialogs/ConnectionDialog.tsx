@@ -4,7 +4,11 @@ import type { AuthMethod, Connection, Environment } from '../connections/types';
 import { useI18n } from '../i18n/useI18n';
 import { Icon } from '../ui/Icon';
 
-type NewConnectionDialogProps = {
+export type DialogMode = 'create' | 'edit';
+
+type ConnectionDialogProps = {
+  mode: DialogMode;
+  initial: Connection | null;
   privateKeys: string[];
   onCancel: () => void;
   onSave: (connection: Connection) => void;
@@ -23,18 +27,34 @@ type Draft = {
 const DEFAULT_KEY = 'id_ed25519';
 const MAX_PORT = 65535;
 
-export const NewConnectionDialog = ({ privateKeys, onCancel, onSave }: NewConnectionDialogProps) => {
+const draftFrom = (connection: Connection): Draft => ({
+  name: connection.name,
+  host: connection.host,
+  port: String(connection.port),
+  user: connection.user,
+  environment: connection.environment,
+  auth: connection.auth,
+  keyName: connection.keyName,
+});
+
+export const ConnectionDialog = ({ mode, initial, privateKeys, onCancel, onSave }: ConnectionDialogProps) => {
   const { messages } = useI18n();
-  const keyChoices = privateKeys.length > 0 ? privateKeys : [DEFAULT_KEY];
-  const [draft, setDraft] = useState<Draft>({
-    name: '',
-    host: '',
-    port: '22',
-    user: '',
-    environment: 'perso',
-    auth: 'key',
-    keyName: keyChoices[0],
-  });
+  const knownKeys = privateKeys.length > 0 ? privateKeys : [DEFAULT_KEY];
+  const keyChoices =
+    initial && initial.auth === 'key' && !knownKeys.includes(initial.keyName) ? [initial.keyName, ...knownKeys] : knownKeys;
+  const [draft, setDraft] = useState<Draft>(() =>
+    initial
+      ? draftFrom(initial)
+      : {
+          name: '',
+          host: '',
+          port: '22',
+          user: '',
+          environment: 'perso',
+          auth: 'key',
+          keyName: keyChoices[0],
+        },
+  );
 
   const update = <Field extends keyof Draft>(field: Field, value: Draft[Field]) =>
     setDraft((current) => ({ ...current, [field]: value }));
@@ -49,7 +69,7 @@ export const NewConnectionDialog = ({ privateKeys, onCancel, onSave }: NewConnec
       return;
     }
     onSave({
-      id: crypto.randomUUID(),
+      id: mode === 'edit' && initial ? initial.id : crypto.randomUUID(),
       name: draft.name.trim(),
       host: draft.host.trim(),
       port,
@@ -72,13 +92,13 @@ export const NewConnectionDialog = ({ privateKeys, onCancel, onSave }: NewConnec
         className="dialog"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="new-connection-title"
+        aria-labelledby="connection-dialog-title"
         onSubmit={handleSubmit}
         onKeyDown={handleKeyDown}
       >
         <div className="dialog__header">
-          <h2 id="new-connection-title" className="dialog__title">
-            {messages.dialog.title}
+          <h2 id="connection-dialog-title" className="dialog__title">
+            {mode === 'edit' ? messages.dialog.editTitle : messages.dialog.title}
           </h2>
           <button type="button" className="button button--ghost button--icon" aria-label={messages.dialog.close} onClick={onCancel}>
             <Icon name="close" size={14} strokeWidth={2.4} />
@@ -203,7 +223,7 @@ export const NewConnectionDialog = ({ privateKeys, onCancel, onSave }: NewConnec
             {messages.dialog.cancel}
           </button>
           <button type="submit" className="button button--primary" disabled={!canSave}>
-            {messages.dialog.save}
+            {mode === 'edit' ? messages.dialog.update : messages.dialog.save}
           </button>
         </div>
       </form>

@@ -4,24 +4,36 @@ import { fromImportedHost } from './connections/fromImportedHost';
 import type { Connection } from './connections/types';
 import { useConnections } from './connections/useConnections';
 import { useI18n } from './i18n/useI18n';
-import { NewConnectionDialog } from './dialogs/NewConnectionDialog';
+import { ConnectionDialog, type DialogMode } from './dialogs/ConnectionDialog';
 import { EmptyState } from './layout/EmptyState';
 import { StatusBar } from './layout/StatusBar';
 import { TabBar } from './layout/TabBar';
 import { TitleBar } from './layout/TitleBar';
+import { sessionLabel } from './sessions/sessionLabel';
 import { useSessions } from './sessions/useSessions';
 import { Sidebar } from './sidebar/Sidebar';
+import { matchShortcut } from './terminal/shortcuts';
 import { TerminalPane } from './terminal/TerminalPane';
+import { useFontSize } from './terminal/useFontSize';
+import { useUpdater } from './updates/useUpdater';
 
 const RECENT_COUNT = 3;
+
+type DialogState = {
+  mode: DialogMode;
+  initial: Connection | null;
+};
 
 const isInsideTerminal = (target: EventTarget | null) => target instanceof Element && target.closest('.xterm') !== null;
 
 export const App = () => {
-  const { connections, storageError, addConnection, removeConnection, mergeConnections } = useConnections();
+  const { connections, storageError, addConnection, updateConnection, removeConnection, mergeConnections } =
+    useConnections();
   const sessions = useSessions();
   const { messages } = useI18n();
-  const [isDialogOpen, setDialogOpen] = useState(false);
+  const { fontSize, zoomIn, zoomOut, resetZoom } = useFontSize();
+  const updater = useUpdater();
+  const [dialog, setDialog] = useState<DialogState | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [privateKeys, setPrivateKeys] = useState<string[]>([]);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -42,11 +54,23 @@ export const App = () => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && !isInsideTerminal(event.target)) {
         event.preventDefault();
         searchRef.current?.focus();
+        return;
+      }
+      const shortcut = matchShortcut(event);
+      if (shortcut === 'zoomIn' || shortcut === 'zoomOut' || shortcut === 'zoomReset') {
+        event.preventDefault();
+        if (shortcut === 'zoomIn') {
+          zoomIn();
+        } else if (shortcut === 'zoomOut') {
+          zoomOut();
+        } else {
+          resetZoom();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [zoomIn, zoomOut, resetZoom]);
 
   const handleImport = async () => {
     try {
@@ -62,19 +86,32 @@ export const App = () => {
     }
   };
 
+  const openCreateDialog = () => setDialog({ mode: 'create', initial: null });
+
   const handleSave = (connection: Connection) => {
+    const mode = dialog?.mode;
+    setDialog(null);
+    if (mode === 'edit') {
+      updateConnection(connection);
+      return;
+    }
     addConnection(connection);
-    setDialogOpen(false);
     sessions.open(connection.id);
   };
 
+  const handleEdit = (connection: Connection) => setDialog({ mode: 'edit', initial: connection });
+
+  const handleDuplicate = (connection: Connection) =>
+    setDialog({ mode: 'create', initial: { ...connection, name: messages.connectionRow.copyName(connection.name) } });
+
   const handleDelete = (connectionId: string) => {
-    sessions.close(connectionId);
+    sessions.closeConnection(connectionId);
     removeConnection(connectionId);
   };
 
-  const activeConnection = sessions.activeId ? connectionsById.get(sessions.activeId) ?? null : null;
-  const activeStatus = sessions.activeId ? sessions.statusOf(sessions.activeId) : null;
+  const activeSession = sessions.activeSession;
+  const activeConnection = activeSession ? connectionsById.get(activeSession.connectionId) ?? null : null;
+  const activeStatus = activeSession?.status ?? null;
 
   return (
     <div className="app">
@@ -82,13 +119,16 @@ export const App = () => {
       <div className="app__body">
         <Sidebar
           connections={connections}
-          activeId={sessions.activeId}
+          activeConnectionId={activeSession?.connectionId ?? null}
           searchRef={searchRef}
-          statusOf={sessions.statusOf}
+          statusOf={sessions.statusOfConnection}
           importMessage={importMessage}
           onOpen={sessions.open}
+          onOpenNew={sessions.openNew}
           onDelete={handleDelete}
-          onNew={() => setDialogOpen(true)}
+          onEdit={handleEdit}
+          onDuplicate={handleDuplicate}
+          onNew={openCreateDialog}
           onImport={handleImport}
         />
         <main className="workspace">
@@ -99,7 +139,7 @@ export const App = () => {
             isSplitRequested={sessions.isSplitRequested}
             onSelect={sessions.focus}
             onClose={sessions.close}
-            onNew={() => setDialogOpen(true)}
+            onNew={openCreateDialog}
             onToggleSplit={sessions.toggleSplit}
           />
           {sessions.sessions.length > 0 ? (
@@ -111,13 +151,15 @@ export const App = () => {
                 }
                 return (
                   <TerminalPane
-                    key={session.connectionId}
+                    key={session.id}
                     connection={connection}
-                    onStatusChange={(status) => sessions.setStatus(session.connectionId, status)}
-                    isVisible={sessions.visibleIds.includes(session.connectionId)}
-                    isFocused={session.connectionId === sessions.activeId}
+                    label={sessionLabel(connection, session)}
+                    fontSize={fontSize}
+                    onStatusChange={(status) => sessions.setStatus(session.id, status)}
+                    isVisible={sessions.visibleIds.includes(session.id)}
+                    isFocused={session.id === sessions.activeId}
                     showHeader={sessions.isSplit}
-                    onFocus={() => sessions.focus(session.connectionId)}
+                    onFocus={() => sessions.focus(session.id)}
                   />
                 );
               })}
@@ -126,7 +168,7 @@ export const App = () => {
             <EmptyState
               recents={connections.slice(0, RECENT_COUNT)}
               onOpen={sessions.open}
-              onNew={() => setDialogOpen(true)}
+              onNew={openCreateDialog}
               onImport={handleImport}
             />
           )}
@@ -135,11 +177,19 @@ export const App = () => {
             status={activeStatus}
             connectionCount={connections.length}
             storageError={storageError}
+            updateState={updater.state}
+            onInstallUpdate={updater.install}
           />
         </main>
       </div>
-      {isDialogOpen && (
-        <NewConnectionDialog privateKeys={privateKeys} onCancel={() => setDialogOpen(false)} onSave={handleSave} />
+      {dialog && (
+        <ConnectionDialog
+          mode={dialog.mode}
+          initial={dialog.initial}
+          privateKeys={privateKeys}
+          onCancel={() => setDialog(null)}
+          onSave={handleSave}
+        />
       )}
     </div>
   );

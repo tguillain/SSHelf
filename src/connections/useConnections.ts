@@ -34,6 +34,10 @@ export const useConnections = () => {
     setConnections((current) => [...current, connection]);
   }, []);
 
+  const updateConnection = useCallback((updated: Connection) => {
+    setConnections((current) => current.map((connection) => (connection.id === updated.id ? updated : connection)));
+  }, []);
+
   const removeConnection = useCallback((connectionId: string) => {
     setConnections((current) => current.filter((connection) => connection.id !== connectionId));
   }, []);
@@ -45,5 +49,5 @@ export const useConnections = () => {
     return fresh.length;
   };
 
-  return { connections, loadState, storageError, addConnection, removeConnection, mergeConnections };
+  return { connections, loadState, storageError, addConnection, updateConnection, removeConnection, mergeConnections };
 };
