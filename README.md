@@ -2,100 +2,102 @@
 
 # SSHelf
 
-**Vos serveurs SSH, rangés sur une étagère. Un clic, vous y êtes.**
+**Your SSH servers, neatly shelved. One click and you're in.**
 
-Un client SSH de bureau léger et moderne : vos connexions mémorisées, ouvertes en un clic,
-toutes réunies en onglets dans une seule fenêtre.
+A lightweight, modern desktop SSH client: your connections saved, opened in a single click,
+all gathered as tabs in one window.
 
 [![Release](https://github.com/tguillain/SSHelf/actions/workflows/release.yml/badge.svg)](https://github.com/tguillain/SSHelf/actions/workflows/release.yml)
-[![Dernière version](https://img.shields.io/github/v/release/tguillain/SSHelf?label=version)](https://github.com/tguillain/SSHelf/releases/latest)
-![Plateformes](https://img.shields.io/badge/plateformes-Windows%20%7C%20macOS%20%7C%20Linux-informational)
-![Rust](https://img.shields.io/badge/c%C5%93ur%20SSH-Rust-dea584?logo=rust)
+[![Latest version](https://img.shields.io/github/v/release/tguillain/SSHelf?label=version)](https://github.com/tguillain/SSHelf/releases/latest)
+![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-informational)
+![Rust](https://img.shields.io/badge/SSH%20core-Rust-dea584?logo=rust)
 ![Tauri](https://img.shields.io/badge/Tauri-2-24c8db?logo=tauri)
 
-[**Télécharger**](https://github.com/tguillain/SSHelf/releases/latest) ·
-[Fonctionnalités](#fonctionnalités) ·
-[Feuille de route](#feuille-de-route) ·
-[Contribuer](#contribuer)
+[**Download**](https://github.com/tguillain/SSHelf/releases/latest) ·
+[Features](#features) ·
+[Roadmap](#roadmap) ·
+[Contributing](#contributing)
 
 </div>
 
 ---
 
-## Pourquoi SSHelf ?
+## Why SSHelf?
 
-Retaper `ssh deploy@web-prod-02 -p 2222` pour la centième fois, jongler entre dix fenêtres
-de terminal, se demander si on est bien sur la préprod avant de lancer une commande…
-SSHelf range tout ça.
+Typing `ssh deploy@web-prod-02 -p 2222` for the hundredth time, juggling ten terminal windows,
+double-checking you're really on staging before running that command…
+SSHelf puts all of that on a shelf.
 
-- **Léger pour de vrai** : un installeur de **2,4 Mo** et environ **30 Mo de mémoire** au
-  démarrage. Pas d'Electron, pas de navigateur embarqué de 150 Mo : SSHelf s'appuie sur la
-  WebView du système.
-- **Un moteur SSH écrit en Rust** : la connexion passe par [russh](https://github.com/Eugeny/russh),
-  une implémentation SSH native, sans dépendre d'OpenSSH ni de PuTTY.
-- **Pensé pour ceux qui gèrent des dizaines de serveurs** : tout est classé par environnement,
-  et la production se voit tout de suite.
+- **Genuinely lightweight**: a **2.4 MB** installer and around **30 MB of memory** at startup.
+  No Electron, no bundled 150 MB browser: SSHelf uses the operating system's own WebView.
+- **An SSH engine written in Rust**: connections go through [russh](https://github.com/Eugeny/russh),
+  a native SSH implementation, with no dependency on OpenSSH or PuTTY.
+- **Built for people who manage dozens of servers**: everything is grouped by environment,
+  and production stands out at a glance.
 
-## Fonctionnalités
+## Features
 
-### Vos connexions, à portée de clic
-- Connexions mémorisées et **classées par environnement** : production, préproduction, perso.
-- **Recherche instantanée** (<kbd>Ctrl</kbd>+<kbd>K</kbd>) pour retrouver un serveur parmi des dizaines.
-- **Import de `~/.ssh/config`** : vos hôtes existants arrivent en un clic.
+### Your connections, one click away
+- Saved connections **grouped by environment**: production, staging, personal.
+- **Instant search** (<kbd>Ctrl</kbd>+<kbd>K</kbd>) to find one server among dozens.
+- **Import from `~/.ssh/config`**: bring your existing hosts in with one click.
 
-### Plusieurs sessions, une seule fenêtre
-- Chaque connexion s'ouvre dans un **onglet** ; clic molette pour le fermer.
-- **Vue partagée** pour garder deux serveurs côte à côte.
-- Connexion perdue ? <kbd>Entrée</kbd> pour **se reconnecter**.
+### Many sessions, one window
+- Each connection opens in its own **tab**; middle-click to close it.
+- **Split view** to keep two servers side by side.
+- Connection dropped? Press <kbd>Enter</kbd> to **reconnect**.
 
-### Un vrai terminal
-- Rendu **xterm.js accéléré par WebGL** : couleurs 256, `vim`, `htop`, `tmux` s'affichent comme il faut.
-- Redimensionnement automatique, 10 000 lignes d'historique, police JetBrains Mono.
+### A real terminal
+- **WebGL-accelerated xterm.js** rendering: 256 colours, and `vim`, `htop` and `tmux` display properly.
+- Automatic resizing, 10,000 lines of scrollback, JetBrains Mono font.
 
-### Sécurité d'abord
-- **Vérification des clés d'hôte** via votre `~/.ssh/known_hosts` : confirmation au premier
-  contact, connexion **bloquée** si la clé du serveur change.
-- **Mots de passe et phrases de passe dans le trousseau du système** (Gestionnaire
-  d'identification Windows, Trousseau macOS, Secret Service sous Linux), jamais en clair sur le disque.
-- Authentification par **mot de passe**, **clé privée** (chiffrée ou non) ou **agent SSH**
+### Security first
+- **Host key verification** against your `~/.ssh/known_hosts`: confirmation on first contact,
+  connection **blocked** if the server's key changes.
+- **Passwords and passphrases stored in the system keychain** (Windows Credential Manager,
+  macOS Keychain, Secret Service on Linux), never in plain text on disk.
+- Authentication by **password**, **private key** (encrypted or not) or **SSH agent**
   (OpenSSH, Pageant).
-- **Bandeau d'alerte** sur les serveurs de production : impossible d'oublier où l'on tape.
+- **Warning banner** on production servers, so you always know where you're typing.
+
+> [!NOTE]
+> The interface is currently in French. An English translation is on the [roadmap](#roadmap).
 
 ## Installation
 
-Téléchargez l'installeur de votre système sur la
-[page des releases](https://github.com/tguillain/SSHelf/releases/latest).
+Download the installer for your system from the
+[releases page](https://github.com/tguillain/SSHelf/releases/latest).
 
-| Système | Fichier |
+| System | File |
 |---|---|
-| Windows 10 / 11 | `SSHelf_x.y.z_x64-setup.exe` (sans droits administrateur) ou `.msi` |
+| Windows 10 / 11 | `SSHelf_x.y.z_x64-setup.exe` (no admin rights needed) or `.msi` |
 | macOS Apple Silicon | `SSHelf_x.y.z_aarch64.dmg` |
 | macOS Intel | `SSHelf_x.y.z_x64.dmg` |
-| Linux | `.AppImage`, `.deb` ou `.rpm` |
+| Linux | `.AppImage`, `.deb` or `.rpm` |
 
 > [!NOTE]
-> Les premières versions ne sont pas encore signées.
-> **Windows** affiche « éditeur inconnu » : cliquez sur *Informations complémentaires*,
-> puis *Exécuter quand même*.
-> **macOS** bloque l'ouverture : faites un clic droit sur l'application, puis *Ouvrir*.
+> Early releases are not code-signed yet.
+> **Windows** shows "Unknown publisher": click *More info*, then *Run anyway*.
+> **macOS** blocks the app on first launch: right-click it, then choose *Open*.
 
-## Feuille de route
+## Roadmap
 
-SSHelf démarre ; voici les pistes pour la suite :
+SSHelf is just getting started. Here's what's next:
 
-- [ ] Palette de commandes complète (<kbd>Ctrl</kbd>+<kbd>K</kbd> pour ouvrir, se connecter, basculer d'onglet)
-- [ ] Transfert de fichiers **SFTP** en glisser-déposer
-- [ ] **Tunnels** et redirections de ports
-- [ ] Thème clair et page de réglages
-- [ ] Installeurs signés et mises à jour automatiques
+- [ ] English interface
+- [ ] Full command palette (<kbd>Ctrl</kbd>+<kbd>K</kbd> to open, connect, switch tabs)
+- [ ] Drag-and-drop **SFTP** file transfer
+- [ ] **Tunnels** and port forwarding
+- [ ] Light theme and a settings page
+- [ ] Signed installers and automatic updates
 
-Une idée, un besoin ? [Ouvrez une issue](https://github.com/tguillain/SSHelf/issues) :
-c'est le meilleur moment pour influencer la direction du projet.
+Got an idea or a need? [Open an issue](https://github.com/tguillain/SSHelf/issues):
+now is the best time to shape where the project goes.
 
-## Développer
+## Development
 
-**Prérequis** : [Node.js](https://nodejs.org) 22+, [Rust](https://rustup.rs) stable, et les
-[dépendances système de Tauri](https://tauri.app/start/prerequisites/) pour votre OS.
+**Prerequisites**: [Node.js](https://nodejs.org) 22+, stable [Rust](https://rustup.rs), and the
+[Tauri system dependencies](https://tauri.app/start/prerequisites/) for your OS.
 
 ```bash
 git clone https://github.com/tguillain/SSHelf.git
@@ -104,33 +106,32 @@ npm install
 npm run tauri dev
 ```
 
-| Commande | Rôle |
+| Command | What it does |
 |---|---|
-| `npm run tauri dev` | Lance l'application avec rechargement à chaud |
-| `npm run tauri build` | Produit les installeurs dans `src-tauri/target/release/bundle/` |
-| `cargo test` (dans `src-tauri/`) | Tests Rust, dont un vrai serveur SSH en mémoire |
+| `npm run tauri dev` | Runs the app with hot reload |
+| `npm run tauri build` | Builds the installers into `src-tauri/target/release/bundle/` |
+| `cargo test` (in `src-tauri/`) | Rust tests, including a real in-memory SSH server |
 
-### Sous le capot
+### Under the hood
 
-| Couche | Technologie |
+| Layer | Technology |
 |---|---|
-| Application | [Tauri 2](https://tauri.app) |
-| Moteur SSH | [russh](https://github.com/Eugeny/russh) (Rust, cryptographie *ring*) |
+| App shell | [Tauri 2](https://tauri.app) |
+| SSH engine | [russh](https://github.com/Eugeny/russh) (Rust, *ring* cryptography) |
 | Secrets | [keyring](https://crates.io/crates/keyring) |
 | Interface | React 19, TypeScript, Vite |
-| Terminal | [xterm.js](https://xtermjs.org) avec rendu WebGL |
+| Terminal | [xterm.js](https://xtermjs.org) with WebGL rendering |
 
-### Publier une version
+### Releasing a version
 
-1. Incrémenter la version dans `package.json` et `src-tauri/tauri.conf.json`.
-2. Pousser un tag : `git tag v0.2.0 && git push origin v0.2.0`.
-3. GitHub Actions lance les tests, compile les installeurs des trois plateformes et prépare
-   une release en brouillon, à publier depuis l'onglet *Releases*.
+1. Bump the version in `package.json` and `src-tauri/tauri.conf.json`.
+2. Push a tag: `git tag v0.2.0 && git push origin v0.2.0`.
+3. GitHub Actions runs the tests, builds the installers for all three platforms and prepares
+   a draft release, ready to publish from the *Releases* tab.
 
-## Contribuer
+## Contributing
 
-Les retours sont les bienvenus, même les plus petits : un bug, une gêne au quotidien, une idée
-de fonctionnalité. Ouvrez une [issue](https://github.com/tguillain/SSHelf/issues) ou proposez
-directement une pull request.
+Feedback of any size is welcome: a bug, a daily annoyance, a feature idea.
+Open an [issue](https://github.com/tguillain/SSHelf/issues) or send a pull request directly.
 
-Si SSHelf vous fait gagner du temps, une ⭐ sur le dépôt aide le projet à se faire connaître.
+If SSHelf saves you time, a ⭐ on the repo helps the project get noticed.
